@@ -84,6 +84,7 @@ int main(int argc, char *argv[]){
     }
 
     else{
+        
         getCounts(fp, &l, &w, &b);
 
         if(fp && option){

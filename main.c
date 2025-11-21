@@ -8,8 +8,11 @@ void getCounts(FILE *fp, int *lines, int *words, int *bytes) {
     *words = 0;
     *lines = 0;
     
+    fseek(fp, 0, SEEK_END);
+    *bytes = ftell(fp);
+    rewind(fp);
+
     while((ch = fgetc(fp)) != EOF){
-        (*bytes)++;
         if(ch == ' ' || ch == '\n' || ch == '\t'){
             inWord = 0;
         } else if(!inWord){
@@ -20,8 +23,8 @@ void getCounts(FILE *fp, int *lines, int *words, int *bytes) {
             (*lines)++;
         }
     }
-
 }
+
 
 int main(int argc, char *argv[]){
     int l = 0, w = 0, b = 0;
@@ -84,7 +87,6 @@ int main(int argc, char *argv[]){
     }
 
     else{
-        
         getCounts(fp, &l, &w, &b);
 
         if(fp && option){

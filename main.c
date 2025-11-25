@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 
 void getCounts(FILE *fp, int *lines, int *words, int *bytes) {
-    int ch, inWord = 0;
+    char buffer[4096];
+    int inWord = 0;
+    size_t bytesRead = 0;
 
     *bytes = 0;
     *words = 0;
@@ -12,15 +15,18 @@ void getCounts(FILE *fp, int *lines, int *words, int *bytes) {
     *bytes = ftell(fp);
     rewind(fp);
 
-    while((ch = fgetc(fp)) != EOF){
-        if(ch == ' ' || ch == '\n' || ch == '\t'){
-            inWord = 0;
-        } else if(!inWord){
-            inWord = 1;
-            (*words)++;
-        }
-        if(ch == '\n'){
-            (*lines)++;
+    while((bytesRead = fread(buffer, 1, sizeof(buffer), fp)) > 0){
+        for(size_t i = 0; i < bytesRead; i++){
+            char ch = buffer[i];
+            if(ch == ' ' || ch == '\n' || ch == '\t'){
+                inWord = 0;
+            } else if(!inWord){
+                inWord = 1;
+                (*words)++;
+            }
+            if(ch == '\n'){
+                (*lines)++;
+            }
         }
     }
 }

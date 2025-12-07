@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include <ctype.h>
 
 void getCounts(FILE *fp, int *lines, int *words, int *bytes) {
     char buffer[4096];
@@ -11,14 +12,12 @@ void getCounts(FILE *fp, int *lines, int *words, int *bytes) {
     *words = 0;
     *lines = 0;
     
-    fseek(fp, 0, SEEK_END);
-    *bytes = ftell(fp);
-    rewind(fp);
 
     while((bytesRead = fread(buffer, 1, sizeof(buffer), fp)) > 0){
+        *bytes += bytesRead;
         for(size_t i = 0; i < bytesRead; i++){
             char ch = buffer[i];
-            if(ch == ' ' || ch == '\n' || ch == '\t'){
+            if(isspace(ch)){
                 inWord = 0;
             } else if(!inWord){
                 inWord = 1;
@@ -35,16 +34,16 @@ void getCounts(FILE *fp, int *lines, int *words, int *bytes) {
 int main(int argc, char *argv[]){
     int l = 0, w = 0, b = 0;
 
-    if (argc < 2)
-    {
-        printf("Usage: ./wc <flags> <file_name>\n");
-        return 1;
-    }
+    
 
     int i = 1;
     int show_lines = 0, show_words = 0, show_bytes = 0, option = 0;
     
     while (i < argc && argv[i][0] == '-') {
+        if (strcmp(argv[i], "-") == 0) {
+            break; 
+        }
+
         if (strcmp(argv[i], "-h") == 0) {
             printf("Usage: wc <filename>\n");
             printf("Optional flags:\n");
@@ -78,36 +77,51 @@ int main(int argc, char *argv[]){
         i++;
     }
 
-    if (i >= argc) {
-        fprintf(stderr, "File isn't specified\n");
-        printf("Usage: ./wc <flags> <file_name>\n");
+    FILE *fp;
+    char *fileName = "";
+
+    if (i >= argc || strcmp(argv[i], "-") == 0) {
+        fp = stdin;
+        fileName = "";
+    } else{
+        fileName = argv[i];
+        fp = fopen(fileName, "r");
+        if(!fp){
+            perror(fileName);
+            return 1;
+        }
+    }
+
+
+    if (fp != stdin && ferror(fp)) {
+        perror(argv[0]);
+        fclose(fp);
         return 1;
     }
-    
-    char *fileName = argv[i];
-    FILE *fp = fopen(fileName, "r");
 
-    if(!fp){
-        fprintf(stderr, "File name doesn't exist\n");
-        return 1;
+    getCounts(fp, &l, &w, &b);
+
+    if (ferror(fp)) {
+        perror(argv[0]);
+        if (fp != stdin) {
+            fclose(fp);
+        }
+        return 1; 
     }
 
-    else{
-        getCounts(fp, &l, &w, &b);
+    if(option){
+        if(show_lines) printf("%d ",l);
+        if(show_words) printf("%d ",w);
+        if(show_bytes) printf("%d ",b);
+    } else {
+        printf("%d %d %d ",l,w,b);
+    }
 
-        if(fp && option){
-            if(show_lines) printf("%d ",l);
-            if(show_words) printf("%d ",w);
-            if(show_bytes) printf("%d ",b);
-            printf("%s\n",fileName);
-            fclose(fp);
-        }
-
-        else if(fp && !option){
-            printf("%d %d %d ",l,w,b);
-            printf("%s\n",fileName);
-            fclose(fp);
-        }
+    if (fp != stdin) {
+        printf("%s\n", fileName);
+        fclose(fp);
+    } else {
+        printf("\n");
     }
 
     return 0;

@@ -40,9 +40,6 @@ int main(int argc, char *argv[]){
     int show_lines = 0, show_words = 0, show_bytes = 0, option = 0;
     
     while (i < argc && argv[i][0] == '-') {
-        if (strcmp(argv[i], "-") == 0) {
-            break; 
-        }
 
         if (strcmp(argv[i], "-h") == 0) {
             printf("Usage: wc <filename>\n");
@@ -80,7 +77,7 @@ int main(int argc, char *argv[]){
     FILE *fp;
     char *fileName = "";
 
-    if (i >= argc || strcmp(argv[i], "-") == 0) {
+    if (i >= argc) {
         fp = stdin;
         fileName = "";
     } else{

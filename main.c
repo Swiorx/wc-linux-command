@@ -92,13 +92,6 @@ int main(int argc, char *argv[]){
         }
     }
 
-
-    if (fp != stdin && ferror(fp)) {
-        perror(argv[0]);
-        fclose(fp);
-        return 1;
-    }
-
     getCounts(fp, &l, &w, &b);
 
     if (ferror(fp)) {
